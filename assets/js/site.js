@@ -161,6 +161,23 @@
     intervalId = window.setInterval(update, 1000);
   }
 
+  function mountUploadForm(url) {
+    const container = document.getElementById("uploadEmbed");
+    if (!container) return;
+    const endpoint = String(url || "").trim();
+    if (!endpoint.startsWith("https://script.google.com/macros/s/") || !endpoint.endsWith("/exec")) {
+      container.textContent = "O formulário de envio ainda não foi conectado.";
+      return;
+    }
+    const frame = document.createElement("iframe");
+    frame.src = endpoint;
+    frame.title = "Enviar fotografias para o Álbum da Iúna";
+    frame.loading = "lazy";
+    frame.setAttribute("referrerpolicy", "no-referrer");
+    frame.style.cssText = "display:block;width:100%;height:1050px;border:0;background:#faf6fc";
+    container.replaceChildren(frame);
+  }
+
   async function init() {
     setupIntro();
     setupNav();
@@ -172,6 +189,7 @@
       console.warn("[IÚNA] Não foi possível ler o catálogo de fotos:", error);
     }
     renderAlbums();
+    mountUploadForm(state.config?.appsScriptUrl);
     createCountdown(state.config?.expectedBirthDate);
   }
   init();
