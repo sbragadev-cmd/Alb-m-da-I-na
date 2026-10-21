@@ -1,5 +1,6 @@
 {
-  "expectedBirthDate": null,
+  "expectedBirthDate": "2026-11-24",
   "timeZone": "America/Sao_Paulo",
-  "photos": []
+  "photos": [],
+  "appsScriptUrl": "https://script.google.com/macros/s/AKfycbxaYPF89_vh5urkvJqgTuPQ6YPKLSdbLCMywZER8yBCxdR-qp9b3vLneuQzFRWwSa8I8A/exec"
 }
