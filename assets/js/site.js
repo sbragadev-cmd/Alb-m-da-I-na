@@ -220,8 +220,51 @@
     document.head.append(tag);
   }
 
+  function setupBirthCountdown() {
+    const labelDays = document.getElementById("introDays");
+    if (!labelDays) return;
+    const target = Date.parse("2026-11-24T00:00:00-03:00");
+    const floating = document.getElementById("floatingCount");
+    const pad = n => String(n).padStart(2, "0");
+    function update() {
+      const remaining = Math.max(0, target - Date.now());
+      const days = Math.floor(remaining / 86400000);
+      const hours = Math.floor((remaining % 86400000) / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      labelDays.textContent = remaining ? String(days) : "♡";
+      document.getElementById("introRest").textContent = remaining
+        ? "dias · " + pad(hours) + "h " + pad(minutes) + "min " + pad(seconds) + "s"
+        : "Bem-vinda, Iúna! ♡";
+      document.getElementById("floatingDays").textContent = remaining
+        ? days + (days === 1 ? " dia" : " dias")
+        : "Bem-vinda! ♡";
+      document.getElementById("floatingRest").textContent = remaining
+        ? pad(hours) + "h " + pad(minutes) + "min"
+        : "24/11/2026";
+    }
+    update();
+    window.setInterval(update, 1000);
+    const intro = document.getElementById("intro");
+    const showFloating = () => {
+      if (floating) floating.hidden = false;
+    };
+    if (!intro) {
+      showFloating();
+    } else {
+      intro.addEventListener("transitionend", event => {
+        if (event.propertyName === "opacity" && intro.classList.contains("is-leaving")) showFloating();
+      });
+      document.getElementById("skipIntro")?.addEventListener("click", () => {
+        window.setTimeout(showFloating, 800);
+      });
+      window.setTimeout(showFloating, 3900);
+    }
+  }
+
   async function init() {
     setupIntro();
+    setupBirthCountdown();
     setupNav();
     if (document.body.dataset.page === "album") {
       const names = {ultrassons:"Ultrassons",cha:"Chá de fraldas",familia:"Nossa família",amigos:"Amigos",eventos:"Eventos"};
