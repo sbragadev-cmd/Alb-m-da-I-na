@@ -178,6 +178,41 @@
     container.replaceChildren(frame);
   }
 
+  function loadApprovedPhotos(endpoint) {
+    const url = String(endpoint || "").trim();
+    if (!url.startsWith("https://script.google.com/macros/s/") || !url.endsWith("/exec")) return;
+    const callbackName = "iunaReceiveGallery_" + Date.now();
+    const tag = document.createElement("script");
+    const timeout = window.setTimeout(() => {
+      tag.remove();
+      delete window[callbackName];
+      console.warn("[IÚNA] Sem resposta do catálogo público Google. Verifique doGet(action=gallery).");
+    }, 15000);
+    window[callbackName] = data => {
+      clearTimeout(timeout);
+      const incoming = Array.isArray(data?.photos) ? data.photos.filter(publicPhoto) : [];
+      const existing = new Set(state.photos.map(photo => photo.id || photo.src || photo.url));
+      for (const photo of incoming) {
+        const key = photo.id || photo.src || photo.url;
+        if (!existing.has(key)) {
+          state.photos.push(photo);
+          existing.add(key);
+        }
+      }
+      renderAlbums();
+      tag.remove();
+      delete window[callbackName];
+    };
+    tag.onerror = () => {
+      clearTimeout(timeout);
+      console.warn("[IÚNA] Não foi possível buscar fotografias aprovadas no Apps Script.");
+      tag.remove();
+      delete window[callbackName];
+    };
+    tag.src = url + "?action=gallery&callback=" + encodeURIComponent(callbackName);
+    document.head.append(tag);
+  }
+
   async function init() {
     setupIntro();
     setupNav();
@@ -190,6 +225,7 @@
     }
     renderAlbums();
     mountUploadForm(state.config?.appsScriptUrl);
+    loadApprovedPhotos(state.config?.appsScriptUrl);
     createCountdown(state.config?.expectedBirthDate);
   }
   init();
