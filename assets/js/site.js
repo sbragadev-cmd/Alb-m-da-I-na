@@ -100,9 +100,16 @@
       const album = container.dataset.album;
       const photos = state.photos.filter(p => p.album === album);
       const fragment = document.createDocumentFragment();
-      const display = photos.slice(0, 2);
+      const isFullPage = document.body.dataset.page === "album";
+      const display = isFullPage ? photos : photos.slice(0, 2);
       display.forEach(p => fragment.append(createPhotoCard(p, photos)));
-      for (let i = display.length; i < 2; i++) fragment.append(createPlaceholder(i));
+      if (!isFullPage) {
+        for (let i = display.length; i < 2; i++) fragment.append(createPlaceholder(i));
+      } else {
+        const count = document.getElementById("photoCount");
+        if (count) count.textContent = photos.length === 1 ? "1 fotografia publicada" : `${photos.length} fotografias publicadas`;
+        if (!photos.length) fragment.append(textElement("p", "album-empty", "Ainda não há fotos publicadas neste álbum."));
+      }
       container.replaceChildren(fragment);
     });
   }
@@ -216,6 +223,19 @@
   async function init() {
     setupIntro();
     setupNav();
+    if (document.body.dataset.page === "album") {
+      const names = {ultrassons:"Ultrassons",cha:"Chá de fraldas",familia:"Nossa família",amigos:"Amigos",eventos:"Eventos"};
+      const key = new URLSearchParams(location.search).get("album");
+      const album = Object.prototype.hasOwnProperty.call(names,key) ? key : "familia";
+      const grid = document.getElementById("fullAlbum");
+      if (grid) grid.dataset.album = album;
+      const title = document.getElementById("albumTitle");
+      if (title) title.textContent = names[album];
+      document.title = names[album] + " · Álbum da Iúna";
+      document.querySelectorAll("[data-album-link]").forEach(link => {
+        link.setAttribute("aria-current", link.dataset.albumLink === album ? "page" : "false");
+      });
+    }
     setupLightbox();
     try {
       state.config = await readConfig();
